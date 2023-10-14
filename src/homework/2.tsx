@@ -1,51 +1,22 @@
-import React, {useReducer} from "react";
+class Employee {
 
-const initialState: State = {
-  isRequestInProgress: false,
-  requestStep: 'idle',
-};
+  name: string;
+  private department: string;
+  protected salary: number;
 
-function requestReducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'START_REQUEST':
-      return { ...state, isRequestInProgress: true, requestStep: 'start' };
-    case 'PENDING_REQUEST':
-      return { ...state, isRequestInProgress: true, requestStep: 'pending' };
-    case 'FINISH_REQUEST':
-      return { ...state, isRequestInProgress: false, requestStep: 'finished' };
-    case 'RESET_REQUEST':
-      return { ...state, isRequestInProgress: false, requestStep: 'idle' };
-    default:
-      return state;
+  constructor(name: string, department: string, salary: number) {
+    this.name = name;
+    this.department = department;
+    this.salary = salary;
+  }
+
+  getEmployeeDetails() {
+    return `Name: ${this.name}, Department: ${this.department}, Salary: ${this.salary}`;
   }
 }
 
-export function RequestComponent() {
-  const [requestState, requestDispatch] = useReducer(requestReducer, initialState);
-
-  const startRequest = () => {
-    requestDispatch({ type: 'START_REQUEST' });
-    // Імітуємо запит до сервера
-    setTimeout(() => {
-      requestDispatch({ type: 'PENDING_REQUEST' });
-      // Імітуємо отримання відповіді від сервера
-      setTimeout(() => {
-        requestDispatch({ type: 'FINISH_REQUEST' });
-      }, 2000);
-    }, 2000);
-  };
-
-  const resetRequest = () => {
-    requestDispatch({ type: 'RESET_REQUEST' });
-  };
-
-  return (
-    <div>
-      <button onClick={startRequest}>Почати запит</button>
-      <button onClick={resetRequest}>Скинути запит</button>
-      <p>Стан запиту: {requestState.requestStep}</p>
-    </div>
-  );
+class Manager extends Employee {
+  constructor(name: string, department: string, salary: number) {
+    super(name, department, salary + 10000);
+  }
 }
-
-export default RequestComponent;
