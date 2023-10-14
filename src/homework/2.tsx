@@ -1,6 +1,5 @@
 class Employee {
-
-  name: string;
+  public name: string;
   private department: string;
   protected salary: number;
 
@@ -20,3 +19,10 @@ class Manager extends Employee {
     super(name, department, salary + 10000);
   }
 }
+
+// Приклад використання класів
+const employee = new Employee("John Doe", "HR", 50000);
+console.log(employee.getEmployeeDetails());
+
+const manager = new Manager("Alice Smith", "Marketing", 60000);
+console.log(manager.getEmployeeDetails());
