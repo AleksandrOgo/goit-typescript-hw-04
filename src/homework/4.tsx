@@ -1,64 +1,98 @@
-class Key {
-  private signature: string;
+import React, { createContext, useMemo, useState, useContext } from "react";
+import noop from "lodash/noop";
 
-  constructor() {
+type MenuIds = "first" | "second" | "last";
+type Menu = { id: MenuIds; title: string };
 
-    this.signature = Math.random().toString(36).substr(2, 10);
-  }
+// Додати тип Menu Selected
+type SelectedMenu = {
+  id: MenuIds;
+};
+type MenuSelected = { selectedMenu: SelectedMenu };
+const MenuSelectedContext = createContext<MenuSelected>({
+  selectedMenu: { id: "first" },
+});
 
-  getSignature(): string {
-    return this.signature;
-  }
+// Додайте тип MenuAction
+type MenuAction = {
+  onSelectedMenu: (selectedMenu: SelectedMenu) => void;
+};
+const MenuActionContext = createContext<MenuAction>({
+  onSelectedMenu: noop,
+});
+
+type PropsProvider = {
+  children: React.ReactNode; // Додати тип для children
+};
+
+function MenuProvider({ children }: PropsProvider) {
+  // Додати тип для SelectedMenu він повинен містити { id }
+  const [selectedMenu, setSelectedMenu] = useState<SelectedMenu>({
+    id: "first",
+  });
+
+  const menuContextAction = useMemo(
+    () => ({
+      onSelectedMenu: setSelectedMenu,
+    }),
+    []
+  );
+
+  const menuContextSelected = useMemo(
+    () => ({
+      selectedMenu,
+    }),
+    [selectedMenu]
+  );
+
+  return (
+    <MenuActionContext.Provider value={menuContextAction}>
+      <MenuSelectedContext.Provider value={menuContextSelected}>
+        {children}
+      </MenuSelectedContext.Provider>
+    </MenuActionContext.Provider>
+  );
 }
 
-class Person {
-  private key: Key;
+type PropsMenu = {
+  menus: Menu[]; // Додайте вірний тип для меню
+};
 
-  constructor(key: Key) {
-    this.key = key;
-  }
+function MenuComponent({ menus }: PropsMenu) {
+  const { onSelectedMenu } = useContext(MenuActionContext);
+  const { selectedMenu } = useContext(MenuSelectedContext);
 
-  getKey(): Key {
-    return this.key;
-  }
+  return (
+    <>
+      {menus.map((menu) => (
+        <div key={menu.id} onClick={() => onSelectedMenu({ id: menu.id })}>
+          {menu.title}{" "}
+          {selectedMenu.id === menu.id ? "Selected" : "Not selected"}
+        </div>
+      ))}
+    </>
+  );
 }
 
-abstract class House {
-  protected door: boolean;
-  protected key: Key;
-  protected tenants: Person[] = [];
+export function ComponentApp() {
+  const menus: Menu[] = [
+    {
+      id: "first",
+      title: "first",
+    },
+    {
+      id: "second",
+      title: "second",
+    },
+    {
+      id: "last",
+      title: "last",
+    },
+  ];
 
-  constructor(key: Key) {
-    this.door = false;
-    this.key = key;
-  }
-
-  comeIn(person: Person): void {
-    if (this.door) {
-      this.tenants.push(person);
-      console.log(`Welcome, ${person.getKey().getSignature()}!`);
-    } else {
-      console.log('The door is closed. You cannot enter.');
-    }
-  }
-
-  abstract openDoor(key: Key): void;
+  return (
+    <MenuProvider>
+      <MenuComponent menus={menus} />
+    </MenuProvider>
+  );
 }
-
-class MyHouse extends House {
-  openDoor(key: Key): void {
-    if (key.getSignature() === this.key.getSignature()) {
-      this.door = true;
-      console.log('The door is open.');
-    } else {
-      console.log('Invalid key. The door remains closed.');
-    }
-  }
-}
-
-const key = new Key();
-const house = new MyHouse(key);
-const person = new Person(key);
-
-house.openDoor(person.getKey());
-house.comeIn(person);
